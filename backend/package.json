@@ -1,0 +1,34 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "Backend da POC de UI agêntica — currículo × vaga com A2UI v0.9",
+    "type": "module",
+    "scripts": {
+        "dev": "mastra dev",
+        "build": "mastra build",
+        "start": "mastra start"
+    },
+    "devEngines": {
+        "packageManager": {
+            "name": "pnpm",
+            "version": "^11.5.1",
+            "onFail": "download"
+        }
+    },
+    "dependencies": {
+        "@ag-ui/core": "^0.0.55",
+        "@ag-ui/mastra": "^1.0.3",
+        "@ai-sdk/anthropic": "^3.0.0",
+        "@mastra/core": "^1.38.0",
+        "hono": "^4.12.23",
+        "pdf-parse": "^1.1.1",
+        "zod": "^3.23.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.9.1",
+        "@types/pdf-parse": "^1.1.5",
+        "mastra": "^1.12.0",
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.3"
+    }
+}
