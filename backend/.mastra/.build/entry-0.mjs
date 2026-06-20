@@ -320,28 +320,13 @@ const sugestoesDataSchema = z.object({
     })
   )
 });
-const inputSchema = z.discriminatedUnion("template", [
-  z.object({
-    template: z.literal("matchScore"),
-    surfaceId: z.string().optional(),
-    data: matchScoreDataSchema
-  }),
-  z.object({
-    template: z.literal("requisitos"),
-    surfaceId: z.string().optional(),
-    data: requisitosDataSchema
-  }),
-  z.object({
-    template: z.literal("pontosFortes"),
-    surfaceId: z.string().optional(),
-    data: pontosfortesDataSchema
-  }),
-  z.object({
-    template: z.literal("sugestoes"),
-    surfaceId: z.string().optional(),
-    data: sugestoesDataSchema
-  })
-]);
+const inputSchema = z.object({
+  template: z.enum(["matchScore", "requisitos", "pontosFortes", "sugestoes"]).describe("Qual template de UI renderizar."),
+  surfaceId: z.string().optional().describe("ID \xFAnico da surface. Gerado automaticamente se omitido."),
+  data: z.record(z.unknown()).describe(
+    "Dados do template. matchScore: {score,resumo}. requisitos: {itens:[{requisito,situacao,nota?}]}. pontosFortes: {itens:[{titulo,descricao}]}. sugestoes: {itens:[{sugestao}]}."
+  )
+});
 const outputSchema = z.object({
   messages: z.array(z.record(z.string(), z.unknown()))
 });
@@ -359,16 +344,16 @@ const renderSurfaceTool = createTool({
     let messages = [];
     switch (context.template) {
       case "matchScore":
-        messages = buildMatchScore(surfaceId, context.data);
+        messages = buildMatchScore(surfaceId, matchScoreDataSchema.parse(context.data));
         break;
       case "requisitos":
-        messages = buildRequisitos(surfaceId, context.data);
+        messages = buildRequisitos(surfaceId, requisitosDataSchema.parse(context.data));
         break;
       case "pontosFortes":
-        messages = buildPontosFortes(surfaceId, context.data);
+        messages = buildPontosFortes(surfaceId, pontosfortesDataSchema.parse(context.data));
         break;
       case "sugestoes":
-        messages = buildSugestoes(surfaceId, context.data);
+        messages = buildSugestoes(surfaceId, sugestoesDataSchema.parse(context.data));
         break;
     }
     return { messages };
@@ -420,22 +405,27 @@ REGRAS ABSOLUTAS:
 "use strict";
 const CURRICULO_MARKER = "[CURRICULO base64]:";
 const VAGA_MARKER = "[VAGA base64]:";
-async function substituirPdfBase64(content, marker, label) {
-  if (!content.includes(marker)) return content;
-  const [prefix, b64] = content.split(marker);
-  const buffer = Buffer.from(b64.trim(), "base64");
+async function substituirPdfBase64(content, marker, label, stopAt) {
+  const markerIdx = content.indexOf(marker);
+  if (markerIdx === -1) return content;
+  const afterMarker = content.slice(markerIdx + marker.length);
+  const stopIdx = stopAt ? afterMarker.indexOf(stopAt) : -1;
+  const b64 = (stopIdx === -1 ? afterMarker : afterMarker.slice(0, stopIdx)).trim();
+  const suffix = stopIdx === -1 ? "" : afterMarker.slice(stopIdx);
+  const buffer = Buffer.from(b64, "base64");
   const result = await pdfParse(buffer);
-  return `${prefix.trim()}
+  const prefix = content.slice(0, markerIdx).trim();
+  return `${prefix}
 
 [${label} \u2014 ${result.numpages} p\xE1gina(s)]:
-${result.text}`;
+${result.text}${suffix}`;
 }
 const mastra = new Mastra({
   agents: {
     "pdf-analyst": pdfAnalystAgent
   },
   server: {
-    // CORS: Angular roda em :4200; Mastra em :4111.
+    // CORS: Angular roda em :4200; Mastra em :4113 (mastra dev).
     cors: {
       origin: ["http://localhost:4200"],
       allowMethods: ["GET", "POST", "OPTIONS"],
@@ -466,7 +456,13 @@ const mastra = new Mastra({
           body.tools = body.tools ?? [];
           for (const msg of body.messages ?? []) {
             if (typeof msg.content !== "string") continue;
-            msg.content = await substituirPdfBase64(msg.content, CURRICULO_MARKER, "Texto do curr\xEDculo extra\xEDdo");
+            msg.content = await substituirPdfBase64(
+              msg.content,
+              CURRICULO_MARKER,
+              "Texto do curr\xEDculo extra\xEDdo",
+              VAGA_MARKER
+              // para no próximo marcador, preservando a vaga
+            );
             msg.content = await substituirPdfBase64(msg.content, VAGA_MARKER, "Texto da vaga extra\xEDdo");
           }
           return streamSSE(c, (stream) => new Promise((resolve, reject) => {

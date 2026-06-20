@@ -21,19 +21,31 @@ async function substituirPdfBase64(
     content: string,
     marker: string,
     label: string,
+    stopAt?: string,
 ): Promise<string> {
-    if (!content.includes(marker)) return content;
-    const [prefix, b64] = content.split(marker);
-    const buffer = Buffer.from(b64.trim(), 'base64');
+    const markerIdx = content.indexOf(marker);
+    if (markerIdx === -1) return content;
+
+    const afterMarker = content.slice(markerIdx + marker.length);
+
+    // Extrai apenas o base64 até o próximo marcador (ou fim da string).
+    // Sem isso, content.split(marker)[1] capturaria o restante da mensagem —
+    // incluindo o marcador da vaga — corrompendo o decode e descartando a vaga.
+    const stopIdx = stopAt ? afterMarker.indexOf(stopAt) : -1;
+    const b64 = (stopIdx === -1 ? afterMarker : afterMarker.slice(0, stopIdx)).trim();
+    const suffix = stopIdx === -1 ? '' : afterMarker.slice(stopIdx);
+
+    const buffer = Buffer.from(b64, 'base64');
     const result = await pdfParse(buffer);
-    return `${prefix.trim()}\n\n[${label} — ${result.numpages} página(s)]:\n${result.text}`;
+    const prefix = content.slice(0, markerIdx).trim();
+    return `${prefix}\n\n[${label} — ${result.numpages} página(s)]:\n${result.text}${suffix}`;
 }
 
 export const mastra = new Mastra({
     agents: { 'pdf-analyst': pdfAnalystAgent },
 
     server: {
-        // CORS: Angular roda em :4200; Mastra em :4111.
+        // CORS: Angular roda em :4200; Mastra em :4113 (mastra dev).
         cors: {
             origin: ['http://localhost:4200'],
             allowMethods: ['GET', 'POST', 'OPTIONS'],
@@ -75,6 +87,7 @@ export const mastra = new Mastra({
                             msg.content,
                             CURRICULO_MARKER,
                             'Texto do currículo extraído',
+                            VAGA_MARKER,       // para no próximo marcador, preservando a vaga
                         );
                         msg.content = await substituirPdfBase64(
                             msg.content,

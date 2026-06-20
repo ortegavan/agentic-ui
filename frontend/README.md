@@ -1,59 +1,51 @@
-# Frontend
+# Frontend — POC UI Agêntica
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.16.
+Frontend Angular 21 que consome o backend Mastra para análise de currículo vs. vaga usando o protocolo AG-UI e o renderer A2UI v0.9.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- **Angular 21** — standalone, signals, OnPush
+- **@a2ui/angular v0.10.1** — renderer oficial (subpath `./v0_9`)
+- **@ag-ui/client v0.0.57** — `HttpAgent` para transporte SSE
+- **pnpm** — gerenciador de pacotes
 
-```bash
-ng serve
+## Arquitetura
+
+```
+app.ts               — AppComponent: uploads, chat, trigger de análise
+agent/agent.service  — HttpAgent + signals (messages, surfaceIds, isRunning)
+app.config.ts        — Provider de A2UI_RENDERER_CONFIG + A2uiRendererService
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Fluxo de dados
 
-## Code scaffolding
+1. Usuário faz upload dos PDFs (currículo + vaga) → lidos como base64 via `FileReader`
+2. Pergunta é enviada ao backend via `HttpAgent.run()` (POST SSE em `http://localhost:4111/awp`)
+3. Eventos `TEXT_MESSAGE_CHUNK` → acumulam texto em streaming na lista de mensagens
+4. Eventos `TOOL_CALL_RESULT` → `A2uiRendererService.processMessages()` processa A2UI messages; `surfaceIds` signal atualizado
+5. `<a2ui-v09-surface [surfaceId]="id">` renderiza cada cartão (score, requisitos, pontos fortes, sugestões)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Pré-requisito
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+O backend **deve estar rodando** em `http://localhost:4111`:
 
 ```bash
-ng build
+cd ../backend
+pnpm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Iniciar
 
 ```bash
-ng test
+pnpm install
+pnpm start
+# Acesse http://localhost:4200
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Build de produção
 
 ```bash
-ng e2e
+pnpm run build
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+> **Aviso de orçamento**: o bundle inicial ultrapassa 500 kB (chega a ~550 kB) por causa do renderer A2UI. Sem impacto funcional.

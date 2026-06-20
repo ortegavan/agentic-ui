@@ -1,1 +1,58 @@
-/* You can add global styles to this file, and also import other style files */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fff;
+  color: #111;
+}
+
+/* A2UI v0.9 CSS custom properties */
+:root {
+  --a2ui-color-primary: #6366f1;
+  --a2ui-color-primary-container: #eef2ff;
+  --a2ui-color-on-primary: #fff;
+  --a2ui-color-on-primary-container: #3730a3;
+  --a2ui-color-secondary: #64748b;
+  --a2ui-color-secondary-container: #f1f5f9;
+  --a2ui-color-on-secondary: #fff;
+  --a2ui-color-on-secondary-container: #1e293b;
+  --a2ui-color-surface: #fff;
+  --a2ui-color-surface-variant: #f8fafc;
+  --a2ui-color-on-surface: #111827;
+  --a2ui-color-on-surface-variant: #6b7280;
+  --a2ui-color-outline: #d1d5db;
+  --a2ui-color-outline-variant: #e5e7eb;
+  --a2ui-color-error: #ef4444;
+  --a2ui-color-on-error: #fff;
+  --a2ui-color-success: #22c55e;
+  --a2ui-color-warning: #f59e0b;
+
+  --a2ui-shape-extra-small: 4px;
+  --a2ui-shape-small: 8px;
+  --a2ui-shape-medium: 12px;
+  --a2ui-shape-large: 16px;
+  --a2ui-shape-extra-large: 24px;
+  --a2ui-shape-full: 9999px;
+
+  --a2ui-spacing-xs: 4px;
+  --a2ui-spacing-sm: 8px;
+  --a2ui-spacing-md: 16px;
+  --a2ui-spacing-lg: 24px;
+  --a2ui-spacing-xl: 32px;
+
+  /* App-level tokens */
+  --color-primary: #6366f1;
+  --color-success: #22c55e;
+  --color-border: #e5e7eb;
+  --color-surface: #f3f4f6;
+  --color-bg: #fff;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+}

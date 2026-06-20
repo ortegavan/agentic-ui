@@ -1,0 +1,218 @@
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1rem 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  text-align: center;
+
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #111);
+    margin: 0 0 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary, #666);
+    margin: 0;
+  }
+}
+
+.uploads {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.upload-card {
+  border: 2px dashed var(--color-border, #ccc);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &.ready {
+    border-color: var(--color-success, #22c55e);
+    border-style: solid;
+  }
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 1rem;
+  cursor: pointer;
+  user-select: none;
+
+  .upload-icon {
+    font-size: 1.75rem;
+  }
+
+  .upload-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-primary, #111);
+  }
+
+  .upload-status {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary, #666);
+  }
+}
+
+.file-input {
+  display: none;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 80%;
+
+  &.user {
+    align-self: flex-end;
+
+    .message-role {
+      text-align: right;
+    }
+
+    .message-content {
+      background: var(--color-primary, #6366f1);
+      color: #fff;
+    }
+  }
+
+  &.assistant {
+    align-self: flex-start;
+
+    .message-content {
+      background: var(--color-surface, #f3f4f6);
+      color: var(--color-text-primary, #111);
+    }
+  }
+}
+
+.message-role {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.message-content {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.thinking {
+  align-self: flex-start;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface, #f3f4f6);
+  border-radius: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-secondary, #666);
+  animation: bounce 1.2s infinite;
+
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40%            { transform: translateY(-6px); }
+}
+
+.surfaces {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.input-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--color-bg, #fff);
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.pergunta-input {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  line-height: 1.5;
+
+  &:focus {
+    border-color: var(--color-primary, #6366f1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #6366f1) 20%, transparent);
+  }
+
+  &:disabled {
+    background: var(--color-surface, #f3f4f6);
+    cursor: not-allowed;
+  }
+}
+
+.send-btn {
+  align-self: flex-end;
+  padding: 0.625rem 1.25rem;
+  background: var(--color-primary, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-primary, #6366f1) 85%, #000);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

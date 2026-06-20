@@ -1722,22 +1722,27 @@ REGRAS ABSOLUTAS:
 
 const CURRICULO_MARKER = "[CURRICULO base64]:";
 const VAGA_MARKER = "[VAGA base64]:";
-async function substituirPdfBase64(content, marker, label) {
-  if (!content.includes(marker)) return content;
-  const [prefix, b64] = content.split(marker);
-  const buffer = Buffer$1.from(b64.trim(), "base64");
+async function substituirPdfBase64(content, marker, label, stopAt) {
+  const markerIdx = content.indexOf(marker);
+  if (markerIdx === -1) return content;
+  const afterMarker = content.slice(markerIdx + marker.length);
+  const stopIdx = stopAt ? afterMarker.indexOf(stopAt) : -1;
+  const b64 = (stopIdx === -1 ? afterMarker : afterMarker.slice(0, stopIdx)).trim();
+  const suffix = stopIdx === -1 ? "" : afterMarker.slice(stopIdx);
+  const buffer = Buffer$1.from(b64, "base64");
   const result = await pdfParse(buffer);
-  return `${prefix.trim()}
+  const prefix = content.slice(0, markerIdx).trim();
+  return `${prefix}
 
 [${label} \u2014 ${result.numpages} p\xE1gina(s)]:
-${result.text}`;
+${result.text}${suffix}`;
 }
 const mastra = new Mastra({
   agents: {
     "pdf-analyst": pdfAnalystAgent
   },
   server: {
-    // CORS: Angular roda em :4200; Mastra em :4111.
+    // CORS: Angular roda em :4200; Mastra em :4113 (mastra dev).
     cors: {
       origin: ["http://localhost:4200"],
       allowMethods: ["GET", "POST", "OPTIONS"],
@@ -1768,7 +1773,13 @@ const mastra = new Mastra({
           body.tools = body.tools ?? [];
           for (const msg of body.messages ?? []) {
             if (typeof msg.content !== "string") continue;
-            msg.content = await substituirPdfBase64(msg.content, CURRICULO_MARKER, "Texto do curr\xEDculo extra\xEDdo");
+            msg.content = await substituirPdfBase64(
+              msg.content,
+              CURRICULO_MARKER,
+              "Texto do curr\xEDculo extra\xEDdo",
+              VAGA_MARKER
+              // para no próximo marcador, preservando a vaga
+            );
             msg.content = await substituirPdfBase64(msg.content, VAGA_MARKER, "Texto da vaga extra\xEDdo");
           }
           return streamSSE(c, (stream) => new Promise((resolve, reject) => {
