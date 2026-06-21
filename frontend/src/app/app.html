@@ -38,28 +38,27 @@
     </div>
   </section>
 
-  @if (agent.messages().length > 0) {
-    <section class="chat" aria-label="Conversa com o agente" aria-live="polite">
-      @for (msg of agent.messages(); track $index) {
-        <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
-          <span class="message-role">{{ msg.role === 'user' ? 'Você' : 'Agente' }}</span>
-          <p class="message-content">{{ msg.content }}</p>
-        </div>
+  @if (agent.items().length > 0) {
+    <section class="timeline" aria-label="Conversa com o agente" aria-live="polite">
+      @for (item of agent.items(); track $index) {
+        @switch (item.kind) {
+          @case ('text') {
+            <div class="message" [class.user]="item.role === 'user'" [class.assistant]="item.role === 'assistant'">
+              <span class="message-role">{{ item.role === 'user' ? 'Você' : 'Agente' }}</span>
+              <p class="message-content">{{ item.content }}</p>
+            </div>
+          }
+          @case ('surface') {
+            <a2ui-v09-surface [surfaceId]="item.surfaceId" />
+          }
+        }
       }
-      @if (agent.isRunning() && agent.surfaceIds().length === 0) {
-        <div class="thinking" role="status" aria-label="Agente digitando">
+      @if (agent.isRunning()) {
+        <div class="thinking" role="status" aria-label="Agente processando">
           <span class="dot"></span>
           <span class="dot"></span>
           <span class="dot"></span>
         </div>
-      }
-    </section>
-  }
-
-  @if (agent.surfaceIds().length > 0) {
-    <section class="surfaces" aria-label="Resultados da análise">
-      @for (id of agent.surfaceIds(); track id) {
-        <a2ui-v09-surface [surfaceId]="id" />
       }
     </section>
   }

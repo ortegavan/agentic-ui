@@ -4,10 +4,9 @@ import { EventType, type BaseEvent, type TextMessageChunkEvent, type ToolCallRes
 import { A2uiRendererService } from '@a2ui/angular/v0_9';
 import type { A2uiMessage } from '@a2ui/web_core/v0_9';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
+export type TimelineItem =
+  | { kind: 'text'; role: 'user' | 'assistant'; content: string }
+  | { kind: 'surface'; surfaceId: string };
 
 const BACKEND_URL = 'http://localhost:4113/awp';
 
@@ -16,23 +15,27 @@ export class AgentService {
   private readonly renderer = inject(A2uiRendererService);
   private readonly http = new HttpAgent({ url: BACKEND_URL });
   private streamingMsgId: string | null = null;
+  // Índice do item de texto do assistant em streaming dentro de items.
+  // Necessário porque uma surface pode ser inserida no array após esse item
+  // antes de o streaming desse texto terminar, tornando [length - 1] inválido.
+  private streamingIndex: number | null = null;
 
-  readonly messages = signal<ChatMessage[]>([]);
-  readonly surfaceIds = signal<string[]>([]);
+  readonly items = signal<TimelineItem[]>([]);
   readonly isRunning = signal(false);
 
   enviar(pergunta: string, curriculoBase64: string, vagaBase64: string): void {
-    // Remove todas as surfaces anteriores do renderer (singleton) para permitir re-análise.
-    // Sem isso, createSurface com o mesmo surfaceId lançaria "Surface X already exists".
+    // Remove todas as surfaces do renderer singleton para permitir re-análise
+    // sem o erro "Surface X already exists" (renderer é singleton e acumula estado).
     for (const id of [...this.renderer.surfaceGroup.surfacesMap.keys()]) {
       this.renderer.processMessages([{ version: 'v0.9', deleteSurface: { surfaceId: id } } as A2uiMessage]);
     }
 
-    this.surfaceIds.set([]);
+    this.items.set([]);
     this.streamingMsgId = null;
+    this.streamingIndex = null;
 
     const content = `${pergunta}\n\n[CURRICULO base64]:${curriculoBase64}\n\n[VAGA base64]:${vagaBase64}`;
-    this.messages.update(msgs => [...msgs, { role: 'user', content: pergunta }]);
+    this.items.update(items => [...items, { kind: 'text', role: 'user', content: pergunta }]);
     this.isRunning.set(true);
 
     this.http
@@ -66,14 +69,25 @@ export class AgentService {
     const msgId = chunk.messageId ?? 'default';
 
     if (msgId !== this.streamingMsgId) {
+      // Novo messageId: cria item de texto do assistant na timeline e grava seu índice.
       this.streamingMsgId = msgId;
-      this.messages.update(msgs => [...msgs, { role: 'assistant', content: chunk.delta! }]);
+      this.streamingIndex = this.items().length;
+      this.items.update(items => [
+        ...items,
+        { kind: 'text', role: 'assistant', content: chunk.delta! },
+      ]);
     } else {
-      this.messages.update(msgs => {
-        const copy = [...msgs];
-        const last = copy[copy.length - 1];
-        if (last?.role === 'assistant') {
-          copy[copy.length - 1] = { role: 'assistant', content: last.content + chunk.delta };
+      // Mesmo messageId: concatena ao item pelo índice gravado, não pelo último elemento.
+      // Ponto de decisão: se o backend reutilizar o mesmo messageId após uma surface
+      // ("texto de continuação"), o delta é concatenado ao item anterior. Se esse
+      // comportamento parecer estranho, trate "texto após surface com mesmo msgId"
+      // como novo item e avise para decidirmos.
+      this.items.update(items => {
+        if (this.streamingIndex === null) return items;
+        const copy = [...items];
+        const target = copy[this.streamingIndex];
+        if (target?.kind === 'text' && target.role === 'assistant') {
+          copy[this.streamingIndex] = { ...target, content: target.content + chunk.delta };
         }
         return copy;
       });
@@ -102,7 +116,10 @@ export class AgentService {
       .map(m => m.createSurface.surfaceId);
 
     if (newIds.length > 0) {
-      this.surfaceIds.update(ids => [...ids, ...newIds]);
+      this.items.update(items => [
+        ...items,
+        ...newIds.map(id => ({ kind: 'surface' as const, surfaceId: id })),
+      ]);
     }
   }
 }
