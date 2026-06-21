@@ -1,9 +1,8 @@
-# UI Agêntica — POC
+# UI Agêntica
 
 Este repositório é uma prova de conceito de UI agêntica: uma interface que não é desenhada com antecedência pelo desenvolvedor, mas gerada em tempo real por um agente de inteligência artificial com base no contexto da conversa.
 
 O cenário escolhido é análise de currículo versus vaga de emprego. O usuário faz upload dos dois documentos em PDF, digita uma pergunta e o agente responde com cards estruturados contendo nota de aderência, lista de requisitos, pontos fortes e sugestões de melhoria.
-
 
 ## O que é UI agêntica
 
@@ -12,7 +11,6 @@ Em aplicações tradicionais, o desenvolvedor decide com antecedência quais com
 Em uma UI agêntica, essa decisão passa a ser do agente. Ele recebe uma tarefa, processa informações e decide quais blocos visuais fazem sentido exibir, em qual ordem e com quais dados. A interface muda a cada execução, moldada pela saída do modelo.
 
 Isso não significa que o modelo gera HTML ou CSS livremente — o que produziria resultados imprevisíveis e difíceis de controlar. Em vez disso, ele chama funções bem definidas (chamadas tools) que constroem os componentes visuais com segurança usando uma especificação formal chamada A2UI.
-
 
 ## Tecnologias e papéis
 
@@ -25,7 +23,6 @@ O projeto é dividido em dois subprojetos que se comunicam via protocolo AG-UI.
 **AG-UI** — protocolo padronizado de comunicação entre agentes e interfaces. Define um conjunto de tipos de eventos (início de stream, chunk de texto, resultado de tool, etc.) transmitidos via SSE (Server-Sent Events), que é um mecanismo HTTP de fluxo unidirecional do servidor para o cliente.
 
 **A2UI** — especificação de formato para descrever componentes de interface em JSON. Em vez de HTML, o agente emite mensagens do tipo "crie uma surface com um Card contendo uma Column com estes Texts". O renderer no frontend interpreta essas mensagens e monta os componentes Angular reais.
-
 
 ## Fluxo geral
 
@@ -62,13 +59,11 @@ Frontend — AgentService
 
 O modelo nunca gera JSON de layout diretamente. Ele sempre chama a tool `renderSurface` passando apenas o nome do template e os dados extraídos dos documentos. O código da tool é quem monta as mensagens A2UI com estrutura garantida.
 
-
 ## Pré-requisitos
 
 - Node.js 20 ou superior
 - pnpm 9 ou superior (instale com `npm install -g pnpm`)
 - Chave de API da Anthropic (crie em console.anthropic.com)
-
 
 ## Como rodar
 
@@ -123,7 +118,6 @@ Aguarde o build terminar e acesse http://localhost:4200.
 - Digite uma pergunta no campo de texto, por exemplo: "Sou adequado para esta vaga?"
 - Pressione Enter ou clique em Analisar
 - Aguarde o agente processar — os cards aparecem conforme cada bloco é gerado
-
 
 ## Estrutura do repositório
 

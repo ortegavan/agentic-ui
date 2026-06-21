@@ -1,7 +1,6 @@
-# Backend — POC UI Agêntica
+# Backend
 
 Este é o servidor da prova de conceito. Ele recebe os PDFs do currículo e da vaga, extrai o texto, passa para o modelo de linguagem Claude e emite os blocos de interface em tempo real para o frontend via protocolo AG-UI.
-
 
 ## Tecnologias
 
@@ -65,7 +64,6 @@ Biblioteca de validação e definição de schemas em TypeScript. É usada para 
 
 Framework HTTP leve que o Mastra usa internamente. O código do projeto usa `registerApiRoute` (que usa Hono) para definir a rota `/awp` e `streamSSE` para emitir o stream de eventos.
 
-
 ## Arquitetura
 
 ```
@@ -115,12 +113,12 @@ O agente não usa memória persistente — cada requisição é tratada de forma
 
 Os quatro templates em `src/a2ui/templates/` são funções TypeScript que recebem dados validados e devolvem arrays de mensagens A2UI:
 
-| Template | Dados esperados | O que exibe |
-|---|---|---|
-| match-score | `{ score, resumo }` | Nota percentual em destaque e uma linha de resumo |
-| requisitos | `{ itens: [{ requisito, situacao, nota? }] }` | Lista de requisitos com ícone de check ou X |
-| pontos-fortes | `{ itens: [{ titulo, descricao }] }` | Lista de pontos favoráveis do candidato |
-| sugestoes | `{ itens: [{ sugestao }] }` | Lista de sugestões práticas de melhoria |
+| Template      | Dados esperados                               | O que exibe                                       |
+| ------------- | --------------------------------------------- | ------------------------------------------------- |
+| match-score   | `{ score, resumo }`                           | Nota percentual em destaque e uma linha de resumo |
+| requisitos    | `{ itens: [{ requisito, situacao, nota? }] }` | Lista de requisitos com ícone de check ou X       |
+| pontos-fortes | `{ itens: [{ titulo, descricao }] }`          | Lista de pontos favoráveis do candidato           |
+| sugestoes     | `{ itens: [{ sugestao }] }`                   | Lista de sugestões práticas de melhoria           |
 
 ### Pré-processamento de PDFs
 
@@ -135,8 +133,7 @@ Uma alternativa de design seria pedir ao modelo que gerasse as mensagens A2UI di
 - O modelo pode alucinar estruturas inválidas: componentes inexistentes no catálogo, props com nomes errados, hierarquias incoerentes. Cada chamada seria um risco de produzir um card quebrado.
 - O modelo gerando JSON de interface livre poderia ser manipulado via prompt injection para emitir componentes maliciosos.
 
-A abordagem adotada inverte o controle: o modelo decide *o que mostrar* (qual template e quais dados extraídos dos documentos), mas o *como mostrar* é sempre determinado pelo código TypeScript dos builders. O modelo só pode escolher entre quatro templates bem definidos, e os dados são validados pelo Zod antes de chegar ao builder.
-
+A abordagem adotada inverte o controle: o modelo decide _o que mostrar_ (qual template e quais dados extraídos dos documentos), mas o _como mostrar_ é sempre determinado pelo código TypeScript dos builders. O modelo só pode escolher entre quatro templates bem definidos, e os dados são validados pelo Zod antes de chegar ao builder.
 
 ## Estrutura de pastas
 
@@ -161,7 +158,6 @@ backend/
   tsconfig.json
 ```
 
-
 ## Configuração
 
 Crie um arquivo `.env` na raiz da pasta `backend`:
@@ -171,7 +167,6 @@ ANTHROPIC_API_KEY=sk-ant-SUA_CHAVE_AQUI
 ```
 
 Substitua pelo valor real da sua chave de API da Anthropic. Sem essa variável, o servidor sobe mas as requisições ao modelo falham com erro de autenticação.
-
 
 ## Como rodar
 
@@ -203,7 +198,6 @@ PORT=4113 pnpm start
 ```
 
 O servidor aceita requisições de `http://localhost:4200` (origem do frontend em desenvolvimento). Se precisar servir o frontend em outra porta, ajuste `cors.origin` em `src/mastra/index.ts`.
-
 
 ## Testando a rota sem o frontend
 

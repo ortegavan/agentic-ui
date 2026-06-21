@@ -1,7 +1,6 @@
-# Frontend — POC UI Agêntica
+# Frontend
 
 Este é o cliente da prova de conceito. Ele permite que o usuário faça upload dos PDFs, envie perguntas ao agente e exibe os cards de análise conforme o backend os gera, em tempo real.
-
 
 ## Tecnologias
 
@@ -34,7 +33,6 @@ O pacote `@a2ui/angular` fornece dois elementos centrais para renderizar interfa
 **SurfaceComponent** (`<a2ui-v09-surface>`) — componente Angular que pega um `surfaceId` e renderiza dinamicamente os componentes daquela surface. Internamente, ele usa `ngComponentOutlet` para instanciar os componentes Angular corretos (CardComponent, ColumnComponent, TextComponent, etc.) com base nas mensagens A2UI processadas.
 
 O catálogo de componentes (`BasicCatalog`) é o que mapeia nomes como `"Card"`, `"Text"`, `"Icon"` para os componentes Angular correspondentes. Ele é configurado em `app.config.ts` via `A2UI_RENDERER_CONFIG`.
-
 
 ## Como funciona o fluxo
 
@@ -80,7 +78,6 @@ Quando o `surfaceIds` signal é atualizado, o Angular re-renderiza o bloco `@for
 
 Isso funciona porque `processMessages()` é chamado antes de `surfaceIds.update()`. No momento em que o Angular detecta a mudança em `surfaceIds` e renderiza o `<a2ui-v09-surface>`, o renderer já conhece a estrutura e os dados da surface. Não há assincronicidade entre processar os dados e renderizar a view.
 
-
 ## Estrutura de pastas
 
 ```
@@ -116,11 +113,9 @@ O arquivo `app.config.ts` é o ponto de entrada de configuração do Angular. Os
 
 O `TextComponent` do A2UI injeta um token chamado `MarkdownRenderer` para renderizar textos com formatação markdown. Esse token não tem um provider padrão automático. Sem `provideMarkdownRenderer()`, o Angular não consegue criar o `TextComponent` e os textos dos cards aparecem em branco.
 
-
 ## Pré-requisito
 
 O backend deve estar rodando em `http://localhost:4113`. Veja as instruções no README do backend.
-
 
 ## Como rodar
 
@@ -145,7 +140,6 @@ pnpm build
 ```
 
 Os arquivos de saída ficam em `dist/frontend/browser/`.
-
 
 ## Variáveis e tokens CSS do A2UI
 
